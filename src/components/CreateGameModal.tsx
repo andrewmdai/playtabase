@@ -81,10 +81,10 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
   };
 
   const toggleAgeGroup = (ag: AgeGroup) => {
-    setDraft((d) => ({
-      ...d,
-      ageGroups: d.ageGroups.includes(ag) ? d.ageGroups.filter((v) => v !== ag) : [...d.ageGroups, ag],
-    }));
+    setDraft((d) => {
+      const next = d.ageGroups.includes(ag) ? d.ageGroups.filter((v) => v !== ag) : [...d.ageGroups, ag];
+      return { ...d, ageGroups: AGE_GROUPS.filter((a) => next.includes(a)) };
+    });
   };
 
   const copyFrom = (game: Game) => {

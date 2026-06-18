@@ -6,6 +6,7 @@ interface GameModalProps {
   onClose: () => void;
   onSave: (updated: Game) => void;
   onEditRequest?: (proceed: () => void) => void;
+  onTagClick?: (tag: string) => void;
 }
 
 const AGE_GROUPS: AgeGroup[] = ['Children', 'Teenagers', 'Young Adults', 'Adults'];
@@ -36,7 +37,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export function GameModal({ game, onClose, onSave, onEditRequest }: GameModalProps) {
+export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick }: GameModalProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Game>(game);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -68,10 +69,10 @@ export function GameModal({ game, onClose, onSave, onEditRequest }: GameModalPro
   };
 
   const toggleAgeGroup = (ag: AgeGroup) => {
-    setDraft((d) => ({
-      ...d,
-      ageGroups: d.ageGroups.includes(ag) ? d.ageGroups.filter((v) => v !== ag) : [...d.ageGroups, ag],
-    }));
+    setDraft((d) => {
+      const next = d.ageGroups.includes(ag) ? d.ageGroups.filter((v) => v !== ag) : [...d.ageGroups, ag];
+      return { ...d, ageGroups: AGE_GROUPS.filter((a) => next.includes(a)) };
+    });
   };
 
   const updateSupplies = (raw: string) => {
@@ -288,9 +289,13 @@ export function GameModal({ game, onClose, onSave, onEditRequest }: GameModalPro
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {display.tags.map((tag) => (
-                  <span key={tag} className="text-xs text-indigo-600 bg-indigo-50 rounded px-2 py-0.5">
+                  <button
+                    key={tag}
+                    onClick={() => onTagClick?.(tag)}
+                    className="text-xs text-indigo-600 bg-indigo-50 rounded px-2 py-0.5 hover:bg-indigo-100 transition-colors"
+                  >
                     #{tag}
-                  </span>
+                  </button>
                 ))}
               </div>
             )}

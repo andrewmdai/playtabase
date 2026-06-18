@@ -3,6 +3,7 @@ import type { Game } from '../types';
 interface GameCardProps {
   game: Game;
   onClick: () => void;
+  onTagClick?: (tag: string) => void;
 }
 
 const SETTING_COLORS: Record<string, string> = {
@@ -11,7 +12,7 @@ const SETTING_COLORS: Record<string, string> = {
   Both: 'bg-violet-100 text-violet-700',
 };
 
-export function GameCard({ game, onClick }: GameCardProps) {
+export function GameCard({ game, onClick, onTagClick }: GameCardProps) {
   return (
     <article
       onClick={onClick}
@@ -66,9 +67,13 @@ export function GameCard({ game, onClick }: GameCardProps) {
         {game.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 pt-1 border-t border-slate-100">
             {game.tags.slice(0, 4).map((tag) => (
-              <span key={tag} className="text-xs text-indigo-500 bg-indigo-50 rounded px-1.5 py-0.5">
+              <button
+                key={tag}
+                onClick={(e) => { e.stopPropagation(); onTagClick?.(tag); }}
+                className="text-xs text-indigo-500 bg-indigo-50 rounded px-1.5 py-0.5 hover:bg-indigo-100 transition-colors"
+              >
                 #{tag}
-              </span>
+              </button>
             ))}
             {game.tags.length > 4 && (
               <span className="text-xs text-slate-400">+{game.tags.length - 4} more</span>

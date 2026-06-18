@@ -16,6 +16,7 @@ const DEFAULT_FILTERS: Filters = {
   setupTimes: [],
   playTimes: [],
   settings: [],
+  tags: [],
 };
 
 export default function App() {
@@ -55,6 +56,7 @@ export default function App() {
       if (filters.setupTimes.length && !filters.setupTimes.includes(g.setupTime)) return false;
       if (filters.playTimes.length && !filters.playTimes.includes(g.playTime)) return false;
       if (filters.settings.length && !filters.settings.includes(g.setting)) return false;
+      if (filters.tags.length && !filters.tags.some((t) => g.tags.includes(t))) return false;
       return true;
     });
   }, [games, filters]);
@@ -63,6 +65,11 @@ export default function App() {
     setGames((prev) => prev.map((g) => (g.id === updated.id ? updated : g)));
     setSelectedGame(updated);
     upsertGame(updated).catch((e) => console.error('Save failed:', e));
+  };
+
+  const handleTagClick = (tag: string) => {
+    setFilters((f) => ({ ...f, tags: [tag] }));
+    setSelectedGame(null);
   };
 
   const handleCreate = (game: Game) => {
@@ -102,6 +109,17 @@ export default function App() {
     }
     return (
       <div className="flex flex-col gap-8">
+        {filters.tags.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">Filtered by tag:</span>
+            {filters.tags.map((tag) => (
+              <span key={tag} className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 rounded-full px-2.5 py-1 font-medium">
+                #{tag}
+                <button onClick={() => setFilters((f) => ({ ...f, tags: [] }))} className="hover:text-indigo-900 leading-none">✕</button>
+              </span>
+            ))}
+          </div>
+        )}
         {featured.length > 0 && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
@@ -109,7 +127,7 @@ export default function App() {
             </h2>
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {featured.map((game) => (
-                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} />
+                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} onTagClick={handleTagClick} />
               ))}
             </div>
           </section>
@@ -123,7 +141,7 @@ export default function App() {
             )}
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {rest.map((game) => (
-                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} />
+                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} onTagClick={handleTagClick} />
               ))}
             </div>
           </section>
@@ -147,6 +165,7 @@ export default function App() {
           onClose={() => setSelectedGame(null)}
           onSave={handleSave}
           onEditRequest={(proceed) => requireAuth(proceed)}
+          onTagClick={handleTagClick}
         />
       )}
 

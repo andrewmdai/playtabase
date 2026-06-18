@@ -25,4 +25,5 @@ export interface Filters {
   setupTimes: TimeRange[];
   playTimes: TimeRange[];
   settings: GameSetting[];
+  tags: string[];
 }
