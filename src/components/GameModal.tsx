@@ -94,12 +94,13 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
       if (e.key === 'Escape') {
         if (showDeletePrompt) closeDeletePrompt();
         else if (showConfirm) setShowConfirm(false);
-        else requestCancel();
+        else if (editing) setShowConfirm(true);
+        else onClose();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [showDeletePrompt, showConfirm, editing]);
+  }, [showDeletePrompt, showConfirm, editing, onClose]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
