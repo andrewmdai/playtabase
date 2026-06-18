@@ -29,11 +29,12 @@ function Badge({ label, color }: { label: string; color?: string }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string | null; children: React.ReactNode }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
       {children}
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }
@@ -42,6 +43,14 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Game>(game);
   const [tagsRaw, setTagsRaw] = useState(game.tags.join(', '));
+  const [attempted, setAttempted] = useState(false);
+
+  const errors = {
+    name: !draft.name.trim() ? 'Required' : null,
+    ageGroups: draft.ageGroups.length === 0 ? 'Select at least one age group' : null,
+    howToPlay: !draft.howToPlay.trim() ? 'Required' : null,
+  };
+  const hasErrors = Object.values(errors).some(Boolean);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -105,6 +114,8 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
   };
 
   const save = () => {
+    setAttempted(true);
+    if (hasErrors) return;
     onSave(draft);
     setEditing(false);
   };
@@ -129,11 +140,14 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
         <div className="flex items-start justify-between p-6 pb-4 border-b border-slate-100">
           <div className="flex-1 pr-4">
             {editing ? (
-              <input
-                className="text-xl font-bold text-slate-800 w-full border-b-2 border-indigo-400 focus:outline-none pb-0.5"
-                value={draft.name}
-                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-              />
+              <>
+                <input
+                  className={`text-xl font-bold text-slate-800 w-full border-b-2 focus:outline-none pb-0.5 ${attempted && errors.name ? 'border-red-400' : 'border-indigo-400'}`}
+                  value={draft.name}
+                  onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                />
+                {attempted && errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+              </>
             ) : (
               <h2 className="text-xl font-bold text-slate-800">{display.name}</h2>
             )}
@@ -176,7 +190,7 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
           <div className="flex flex-wrap gap-2">
             {editing ? (
               <div className="w-full flex flex-col gap-3">
-                <Field label="Age Groups">
+                <Field label="Age Groups" error={attempted ? errors.ageGroups : null}>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {AGE_GROUPS.map((ag) => (
                       <label key={ag} className="flex items-center gap-1.5 cursor-pointer">
@@ -288,7 +302,7 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
           </Field>
 
           {/* How to play */}
-          <Field label="How to Play">
+          <Field label="How to Play" error={attempted ? errors.howToPlay : null}>
             {editing ? (
               <textarea
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 resize-none"

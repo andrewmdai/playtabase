@@ -12,7 +12,10 @@ const SETTING_COLORS: Record<string, string> = {
   Both: 'bg-violet-100 text-violet-700',
 };
 
+const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
 export function GameCard({ game, onClick, onTagClick }: GameCardProps) {
+  const isNew = !!game.createdAt && Date.now() - game.createdAt < THIRTY_DAYS;
   return (
     <article
       onClick={onClick}
@@ -27,8 +30,9 @@ export function GameCard({ game, onClick, onTagClick }: GameCardProps) {
 
       <div className="p-4 flex flex-col gap-3 flex-1">
         <div>
-          <h3 className="text-base font-semibold text-slate-800 group-hover:text-indigo-700 transition-colors leading-tight">
+          <h3 className="text-base font-semibold text-slate-800 group-hover:text-indigo-700 transition-colors leading-tight flex items-center gap-2">
             {game.name}
+            {isNew && <span className="text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5 shrink-0">New</span>}
           </h3>
 
           <div className="flex flex-wrap gap-1.5 mt-2">

@@ -16,6 +16,7 @@ export interface Game {
   howToPlay: string;
   tags: string[];
   featured: boolean;
+  createdAt?: number;
 }
 
 export interface Filters {

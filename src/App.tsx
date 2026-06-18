@@ -29,6 +29,7 @@ export default function App() {
   const [createOpen, setCreateOpen] = useState(false);
   const [authed, setAuthed] = useState(isAuthed);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [sort, setSort] = useState<'a-z' | 'z-a' | 'newest'>('a-z');
 
   useEffect(() => {
     fetchGames()
@@ -50,7 +51,16 @@ export default function App() {
 
   const filtered = useMemo(() => {
     return games.filter((g) => {
-      if (filters.search && !g.name.toLowerCase().includes(filters.search.toLowerCase())) return false;
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        const matches =
+          g.name.toLowerCase().includes(q) ||
+          g.tags.some((t) => t.toLowerCase().includes(q)) ||
+          g.howToPlay.toLowerCase().includes(q) ||
+          g.setupInstructions.toLowerCase().includes(q) ||
+          g.suppliesRequired.some((s) => s.toLowerCase().includes(q));
+        if (!matches) return false;
+      }
       if (filters.ageGroups.length && !filters.ageGroups.some((ag) => g.ageGroups.includes(ag))) return false;
       if (filters.groupSizes.length && !filters.groupSizes.includes(g.groupSize)) return false;
       if (filters.setupTimes.length && !filters.setupTimes.includes(g.setupTime)) return false;
@@ -60,6 +70,13 @@ export default function App() {
       return true;
     });
   }, [games, filters]);
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    if (sort === 'a-z') return arr.sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === 'z-a') return arr.sort((a, b) => b.name.localeCompare(a.name));
+    return arr.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  }, [filtered, sort]);
 
   const handleSave = (updated: Game) => {
     setGames((prev) => prev.map((g) => (g.id === updated.id ? updated : g)));
@@ -85,8 +102,8 @@ export default function App() {
     upsertGame(game).catch((e) => console.error('Create failed:', e));
   };
 
-  const featured = filtered.filter((g) => g.featured);
-  const rest = filtered.filter((g) => !g.featured);
+  const featured = sorted.filter((g) => g.featured);
+  const rest = sorted.filter((g) => !g.featured);
 
   const renderMain = () => {
     if (loading) {
@@ -115,17 +132,33 @@ export default function App() {
     }
     return (
       <div className="flex flex-col gap-8">
-        {filters.tags.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">Filtered by tag:</span>
-            {filters.tags.map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 rounded-full px-2.5 py-1 font-medium">
-                #{tag}
-                <button onClick={() => setFilters((f) => ({ ...f, tags: [] }))} className="hover:text-indigo-900 leading-none">✕</button>
-              </span>
-            ))}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            {filters.tags.length > 0 && (
+              <>
+                <span className="text-xs text-slate-500">Filtered by tag:</span>
+                {filters.tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 rounded-full px-2.5 py-1 font-medium">
+                    #{tag}
+                    <button onClick={() => setFilters((f) => ({ ...f, tags: [] }))} className="hover:text-indigo-900 leading-none">✕</button>
+                  </span>
+                ))}
+              </>
+            )}
           </div>
-        )}
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
+            <label className="text-xs text-slate-400">Sort:</label>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as 'a-z' | 'z-a' | 'newest')}
+              className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-600 focus:outline-none focus:border-indigo-400"
+            >
+              <option value="a-z">A–Z</option>
+              <option value="z-a">Z–A</option>
+              <option value="newest">Newest first</option>
+            </select>
+          </div>
+        </div>
         {featured.length > 0 && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">

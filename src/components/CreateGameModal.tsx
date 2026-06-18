@@ -109,7 +109,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
     setAttempted(true);
     if (hasErrors) return;
     const slug = draft.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    onCreate({ ...draft, suppliesRequired: draft.suppliesRequired.filter(Boolean), id: `${slug}-${Date.now()}` });
+    onCreate({ ...draft, suppliesRequired: draft.suppliesRequired.filter(Boolean), id: `${slug}-${Date.now()}`, createdAt: Date.now() });
   };
 
   const searchResults = games.filter((g) =>
