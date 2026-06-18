@@ -7,6 +7,7 @@ interface GameModalProps {
   onSave: (updated: Game) => void;
   onEditRequest?: (proceed: () => void) => void;
   onTagClick?: (tag: string) => void;
+  onDelete?: () => void;
 }
 
 const AGE_GROUPS: AgeGroup[] = ['Children', 'Teenagers', 'Young Adults', 'Adults'];
@@ -37,10 +38,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick }: GameModalProps) {
+export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, onDelete }: GameModalProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Game>(game);
+  const [tagsRaw, setTagsRaw] = useState(game.tags.join(', '));
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showDeletePrompt, setShowDeletePrompt] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState(false);
   const backdropRef = useRef<HTMLDivElement>(null);
 
   const requestCancel = () => {
@@ -48,16 +53,32 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick }: 
     else onClose();
   };
 
+  const closeDeletePrompt = () => {
+    setShowDeletePrompt(false);
+    setDeletePassword('');
+    setDeleteError(false);
+  };
+
+  const confirmDelete = () => {
+    if (deletePassword === (import.meta.env.VITE_ADMIN_PASSWORD as string)) {
+      onDelete?.();
+    } else {
+      setDeleteError(true);
+      setDeletePassword('');
+    }
+  };
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (showConfirm) setShowConfirm(false);
+        if (showDeletePrompt) closeDeletePrompt();
+        else if (showConfirm) setShowConfirm(false);
         else requestCancel();
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [showConfirm, editing]);
+  }, [showDeletePrompt, showConfirm, editing]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -90,6 +111,7 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick }: 
 
   const discardEdits = () => {
     setDraft(game);
+    setTagsRaw(game.tags.join(', '));
     setEditing(false);
     setShowConfirm(false);
   };
@@ -124,6 +146,9 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick }: 
           <div className="flex items-center gap-2 shrink-0">
             {editing ? (
               <>
+                <button onClick={() => setShowDeletePrompt(true)} className="text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition-colors">
+                  Delete
+                </button>
                 <button onClick={requestCancel} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
                   Cancel
                 </button>
@@ -283,8 +308,9 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick }: 
                 type="text"
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400"
                 placeholder="Comma-separated tags..."
-                value={draft.tags.join(', ')}
-                onChange={(e) => updateTags(e.target.value)}
+                value={tagsRaw}
+                onChange={(e) => setTagsRaw(e.target.value)}
+                onBlur={() => updateTags(tagsRaw)}
               />
             ) : (
               <div className="flex flex-wrap gap-1.5">
@@ -302,6 +328,38 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick }: 
           </Field>
         </div>
       </div>
+
+      {/* Delete confirmation */}
+      {showDeletePrompt && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-80 flex flex-col gap-4">
+            <div>
+              <p className="font-semibold text-slate-800">Delete "{game.name}"?</p>
+              <p className="text-sm text-slate-500 mt-1">Enter the admin password to permanently delete this game.</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <input
+                autoFocus
+                type="password"
+                className={`w-full text-sm border rounded-lg px-3 py-2 focus:outline-none transition-colors ${deleteError ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-indigo-400'}`}
+                placeholder="Password"
+                value={deletePassword}
+                onChange={(e) => { setDeletePassword(e.target.value); setDeleteError(false); }}
+                onKeyDown={(e) => e.key === 'Enter' && confirmDelete()}
+              />
+              {deleteError && <p className="text-xs text-red-500">Incorrect password.</p>}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={closeDeletePrompt} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+                Cancel
+              </button>
+              <button onClick={confirmDelete} className="text-sm px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Discard confirmation */}
       {showConfirm && (

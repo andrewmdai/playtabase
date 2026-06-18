@@ -26,20 +26,30 @@ const EMPTY_DRAFT = {
   featured: false,
 };
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string | null; children: React.ReactNode }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
       {children}
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
   );
 }
 
 export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalProps) {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
+  const [tagsRaw, setTagsRaw] = useState('');
+  const [attempted, setAttempted] = useState(false);
   const [showCopySearch, setShowCopySearch] = useState(false);
   const [copySearch, setCopySearch] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const errors = {
+    name: !draft.name.trim() ? 'Required' : null,
+    ageGroups: draft.ageGroups.length === 0 ? 'Select at least one age group' : null,
+    howToPlay: !draft.howToPlay.trim() ? 'Required' : null,
+  };
+  const hasErrors = Object.values(errors).some(Boolean);
   const backdropRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -90,14 +100,16 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
   const copyFrom = (game: Game) => {
     const { id: _id, ...rest } = game;
     setDraft(rest);
+    setTagsRaw(game.tags.join(', '));
     setShowCopySearch(false);
     setCopySearch('');
   };
 
   const save = () => {
-    if (!draft.name.trim()) return;
+    setAttempted(true);
+    if (hasErrors) return;
     const slug = draft.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    onCreate({ ...draft, id: `${slug}-${Date.now()}` });
+    onCreate({ ...draft, suppliesRequired: draft.suppliesRequired.filter(Boolean), id: `${slug}-${Date.now()}` });
   };
 
   const searchResults = games.filter((g) =>
@@ -116,11 +128,12 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
           <div className="flex-1 pr-4">
             <input
               autoFocus
-              className="text-xl font-bold text-slate-800 w-full border-b-2 border-indigo-400 focus:outline-none pb-0.5 placeholder:font-normal placeholder:text-slate-300"
+              className={`text-xl font-bold text-slate-800 w-full border-b-2 focus:outline-none pb-0.5 placeholder:font-normal placeholder:text-slate-300 ${attempted && errors.name ? 'border-red-400' : 'border-indigo-400'}`}
               placeholder="Game name..."
               value={draft.name}
               onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
             />
+            {attempted && errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button
@@ -179,7 +192,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
 
         {/* Body */}
         <div className="overflow-y-auto flex-1 p-6 flex flex-col gap-5">
-          <Field label="Age Groups">
+          <Field label="Age Groups" error={attempted ? errors.ageGroups : null}>
             <div className="flex flex-wrap gap-2 mt-1">
               {AGE_GROUPS.map((ag) => (
                 <label key={ag} className="flex items-center gap-1.5 cursor-pointer">
@@ -255,7 +268,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
               onChange={(e) =>
                 setDraft((d) => ({
                   ...d,
-                  suppliesRequired: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean),
+                  suppliesRequired: e.target.value.split('\n').map((s) => s.trim()),
                 }))
               }
             />
@@ -270,7 +283,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
             />
           </Field>
 
-          <Field label="How to Play">
+          <Field label="How to Play" error={attempted ? errors.howToPlay : null}>
             <textarea
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 resize-none"
               rows={6}
@@ -284,11 +297,12 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
               type="text"
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400"
               placeholder="Comma-separated tags..."
-              value={draft.tags.join(', ')}
-              onChange={(e) =>
+              value={tagsRaw}
+              onChange={(e) => setTagsRaw(e.target.value)}
+              onBlur={() =>
                 setDraft((d) => ({
                   ...d,
-                  tags: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                  tags: tagsRaw.split(',').map((s) => s.trim()).filter(Boolean),
                 }))
               }
             />
@@ -305,8 +319,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
           </button>
           <button
             onClick={save}
-            disabled={!draft.name.trim()}
-            className="text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
           >
             Create Game
           </button>

@@ -5,7 +5,7 @@ import { GameCard } from './components/GameCard';
 import { GameModal } from './components/GameModal';
 import { CreateGameModal } from './components/CreateGameModal';
 import { AuthPrompt, isAuthed } from './components/AuthPrompt';
-import { fetchGames, upsertGame } from './api';
+import { fetchGames, upsertGame, deleteGame } from './api';
 import type { Filters, Game } from './types';
 import './index.css';
 
@@ -70,6 +70,12 @@ export default function App() {
   const handleTagClick = (tag: string) => {
     setFilters((f) => ({ ...f, tags: [tag] }));
     setSelectedGame(null);
+  };
+
+  const handleDelete = (game: Game) => {
+    setGames((prev) => prev.filter((g) => g.id !== game.id));
+    setSelectedGame(null);
+    deleteGame(game.id).catch((e) => console.error('Delete failed:', e));
   };
 
   const handleCreate = (game: Game) => {
@@ -166,6 +172,7 @@ export default function App() {
           onSave={handleSave}
           onEditRequest={(proceed) => requireAuth(proceed)}
           onTagClick={handleTagClick}
+          onDelete={() => handleDelete(selectedGame)}
         />
       )}
 
