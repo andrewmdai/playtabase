@@ -4,6 +4,7 @@ interface GameCardProps {
   game: Game;
   onClick: () => void;
   onTagClick?: (tag: string) => void;
+  focused?: boolean;
 }
 
 const SETTING_COLORS: Record<string, string> = {
@@ -14,12 +15,13 @@ const SETTING_COLORS: Record<string, string> = {
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
-export function GameCard({ game, onClick, onTagClick }: GameCardProps) {
+export function GameCard({ game, onClick, onTagClick, focused }: GameCardProps) {
   const isNew = !!game.createdAt && Date.now() - game.createdAt < THIRTY_DAYS;
   return (
     <article
+      id={`card-${game.id}`}
       onClick={onClick}
-      className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-200 cursor-pointer group overflow-hidden flex flex-col"
+      className={`bg-white dark:bg-slate-800 rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group overflow-hidden flex flex-col ${focused ? 'border-indigo-500 dark:border-indigo-400 ring-2 ring-indigo-500 dark:ring-indigo-400 ring-offset-2 dark:ring-offset-slate-900' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500'}`}
     >
       {game.featured && (
         <div className="bg-indigo-600 text-white text-xs font-semibold px-3 py-1 flex items-center gap-1">
@@ -69,7 +71,7 @@ export function GameCard({ game, onClick, onTagClick }: GameCardProps) {
         </p>
 
         {game.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 pt-1 border-t border-slate-100 dark:border-slate-700">
+          <div className="flex flex-wrap items-center gap-1 pt-1 border-t border-slate-100 dark:border-slate-700">
             {game.tags.slice(0, 4).map((tag) => (
               <button
                 key={tag}

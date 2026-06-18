@@ -56,6 +56,13 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
   };
   const hasErrors = Object.values(errors).some(Boolean);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState(false);
@@ -175,12 +182,17 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => onEditRequest ? onEditRequest(() => setEditing(true)) : setEditing(true)}
-                className={outlineBtnCls}
-              >
-                Edit
-              </button>
+              <>
+                <button onClick={handleShare} className={outlineBtnCls}>
+                  {copied ? 'Copied!' : 'Share'}
+                </button>
+                <button
+                  onClick={() => onEditRequest ? onEditRequest(() => setEditing(true)) : setEditing(true)}
+                  className={outlineBtnCls}
+                >
+                  Edit
+                </button>
+              </>
             )}
             <button onClick={requestCancel} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-lg leading-none">
               ✕

@@ -31,6 +31,7 @@ export default function App() {
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [sort, setSort] = useState<'a-z' | 'z-a' | 'newest'>('a-z');
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('playtabase-theme') === 'dark');
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
@@ -39,10 +40,24 @@ export default function App() {
 
   useEffect(() => {
     fetchGames()
-      .then(setGames)
+      .then((loadedGames) => {
+        setGames(loadedGames);
+        const id = new URLSearchParams(window.location.search).get('game');
+        if (id) {
+          const game = loadedGames.find((g) => g.id === id);
+          if (game) setSelectedGame(game);
+        }
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (selectedGame) url.searchParams.set('game', selectedGame.id);
+    else url.searchParams.delete('game');
+    history.replaceState(null, '', url.toString());
+  }, [selectedGame]);
 
   const requireAuth = (action: () => void) => {
     if (authed) action();
@@ -78,11 +93,45 @@ export default function App() {
   }, [games, filters]);
 
   const sorted = useMemo(() => {
-    const arr = [...filtered];
-    if (sort === 'a-z') return arr.sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === 'z-a') return arr.sort((a, b) => b.name.localeCompare(a.name));
-    return arr.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    const compare = (a: Game, b: Game) => {
+      if (sort === 'a-z') return a.name.localeCompare(b.name);
+      if (sort === 'z-a') return b.name.localeCompare(a.name);
+      return (b.createdAt ?? 0) - (a.createdAt ?? 0);
+    };
+    return [...filtered].sort((a, b) => {
+      if (a.featured !== b.featured) return a.featured ? -1 : 1;
+      return compare(a, b);
+    });
   }, [filtered, sort]);
+
+  useEffect(() => { setFocusedIndex(null); }, [sorted]);
+
+  useEffect(() => {
+    if (focusedIndex === null) return;
+    document.getElementById(`card-${sorted[focusedIndex]?.id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [focusedIndex]);
+
+  useEffect(() => {
+    if (selectedGame || createOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex((i) => (i === null ? 0 : Math.min(i + 1, sorted.length - 1)));
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex((i) => (i === null ? sorted.length - 1 : Math.max(i - 1, 0)));
+      } else if (e.key === 'Enter' && focusedIndex !== null) {
+        e.preventDefault();
+        setSelectedGame(sorted[focusedIndex]);
+      } else if (e.key === 'Escape' && focusedIndex !== null) {
+        setFocusedIndex(null);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedGame, createOpen, focusedIndex, sorted]);
 
   const handleSave = (updated: Game) => {
     setGames((prev) => prev.map((g) => (g.id === updated.id ? updated : g)));
@@ -108,8 +157,6 @@ export default function App() {
     upsertGame(game).catch((e) => console.error('Create failed:', e));
   };
 
-  const featured = sorted.filter((g) => g.featured);
-  const rest = sorted.filter((g) => !g.featured);
 
   const renderMain = () => {
     if (loading) {
@@ -137,11 +184,15 @@ export default function App() {
       );
     }
     return (
-      <div className="flex flex-col gap-8">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 flex-wrap">
+      <section>
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+              Games <span className="normal-case tracking-normal font-normal">({sorted.length})</span>
+            </h2>
             {filters.tags.length > 0 && (
               <>
+                <span className="text-xs text-slate-400 dark:text-slate-500">·</span>
                 <span className="text-xs text-slate-500">Filtered by tag:</span>
                 {filters.tags.map((tag) => (
                   <span key={tag} className="inline-flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 rounded-full px-2.5 py-1 font-medium">
@@ -152,7 +203,7 @@ export default function App() {
               </>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-auto">
+          <div className="flex items-center gap-2 shrink-0">
             <label className="text-xs text-slate-400">Sort:</label>
             <select
               value={sort}
@@ -165,33 +216,12 @@ export default function App() {
             </select>
           </div>
         </div>
-        {featured.length > 0 && (
-          <section>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
-              Featured <span className="normal-case tracking-normal font-normal">({featured.length})</span>
-            </h2>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {featured.map((game) => (
-                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} onTagClick={handleTagClick} />
-              ))}
-            </div>
-          </section>
-        )}
-        {rest.length > 0 && (
-          <section>
-            {featured.length > 0 && (
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
-                All Games <span className="normal-case tracking-normal font-normal">({rest.length})</span>
-              </h2>
-            )}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {rest.map((game) => (
-                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} onTagClick={handleTagClick} />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {sorted.map((game, i) => (
+              <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} onTagClick={handleTagClick} focused={focusedIndex === i} />
+            ))}
+          </div>
+        </section>
     );
   };
 
