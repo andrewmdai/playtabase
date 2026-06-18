@@ -26,6 +26,10 @@ const EMPTY_DRAFT = {
   featured: false,
 };
 
+const inputCls = 'w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 resize-none';
+const selectCls = 'mt-1 w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-400 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200';
+const outlineBtnCls = 'text-sm px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors';
+
 function Field({ label, error, children }: { label: string; error?: string | null; children: React.ReactNode }) {
   return (
     <div>
@@ -122,13 +126,13 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
       onClick={handleBackdropClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-start justify-between p-6 pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between p-6 pb-4 border-b border-slate-100 dark:border-slate-700">
           <div className="flex-1 pr-4">
             <input
               autoFocus
-              className={`text-xl font-bold text-slate-800 w-full border-b-2 focus:outline-none pb-0.5 placeholder:font-normal placeholder:text-slate-300 ${attempted && errors.name ? 'border-red-400' : 'border-indigo-400'}`}
+              className={`text-xl font-bold w-full border-b-2 focus:outline-none pb-0.5 placeholder:font-normal placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-transparent text-slate-800 dark:text-slate-100 ${attempted && errors.name ? 'border-red-400' : 'border-indigo-400'}`}
               placeholder="Game name..."
               value={draft.name}
               onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
@@ -138,13 +142,13 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setShowCopySearch((v) => !v)}
-              className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+              className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               Copy from…
             </button>
             <button
               onClick={requestClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors text-lg leading-none"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-lg leading-none"
             >
               ✕
             </button>
@@ -158,14 +162,14 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
               <input
                 ref={searchInputRef}
                 type="text"
-                className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 pr-8"
+                className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 pr-8"
                 placeholder="Search for a game to copy from..."
                 value={copySearch}
                 onChange={(e) => setCopySearch(e.target.value)}
               />
               <button
                 onClick={() => { setShowCopySearch(false); setCopySearch(''); }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm leading-none"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm leading-none"
               >
                 ✕
               </button>
@@ -173,12 +177,12 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
             {copySearch && searchResults.length === 0 ? (
               <p className="text-sm text-slate-400 mt-2 px-1 pb-2">No games found</p>
             ) : searchResults.length > 0 ? (
-              <ul className="mt-1.5 mb-1 border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-48 overflow-y-auto shadow-sm">
+              <ul className="mt-1.5 mb-1 border border-slate-200 dark:border-slate-600 rounded-lg divide-y divide-slate-100 dark:divide-slate-700 max-h-48 overflow-y-auto shadow-sm">
                 {searchResults.map((g) => (
                   <li key={g.id}>
                     <button
                       onClick={() => copyFrom(g)}
-                      className="w-full text-left px-3 py-2.5 text-sm text-slate-700 hover:bg-indigo-50 transition-colors"
+                      className="w-full text-left px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
                     >
                       <span className="font-medium">{g.name}</span>
                       <span className="text-slate-400 ml-2 text-xs">{g.setting} · {g.groupSize}</span>
@@ -202,7 +206,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
                     onChange={() => toggleAgeGroup(ag)}
                     className="w-3.5 h-3.5 rounded text-indigo-600"
                   />
-                  <span className="text-sm text-slate-600">{ag}</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-300">{ag}</span>
                 </label>
               ))}
             </div>
@@ -210,38 +214,22 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Group Size">
-              <select
-                value={draft.groupSize}
-                onChange={(e) => setDraft((d) => ({ ...d, groupSize: e.target.value as GroupSize }))}
-                className="mt-1 w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-400"
-              >
+              <select value={draft.groupSize} onChange={(e) => setDraft((d) => ({ ...d, groupSize: e.target.value as GroupSize }))} className={selectCls}>
                 {GROUP_SIZES.map((s) => <option key={s}>{s}</option>)}
               </select>
             </Field>
             <Field label="Setting">
-              <select
-                value={draft.setting}
-                onChange={(e) => setDraft((d) => ({ ...d, setting: e.target.value as GameSetting }))}
-                className="mt-1 w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-400"
-              >
+              <select value={draft.setting} onChange={(e) => setDraft((d) => ({ ...d, setting: e.target.value as GameSetting }))} className={selectCls}>
                 {SETTINGS.map((s) => <option key={s}>{s}</option>)}
               </select>
             </Field>
             <Field label="Setup Time">
-              <select
-                value={draft.setupTime}
-                onChange={(e) => setDraft((d) => ({ ...d, setupTime: e.target.value as TimeRange }))}
-                className="mt-1 w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-400"
-              >
+              <select value={draft.setupTime} onChange={(e) => setDraft((d) => ({ ...d, setupTime: e.target.value as TimeRange }))} className={selectCls}>
                 {TIME_RANGES.map((t) => <option key={t}>{t}</option>)}
               </select>
             </Field>
             <Field label="Play Time">
-              <select
-                value={draft.playTime}
-                onChange={(e) => setDraft((d) => ({ ...d, playTime: e.target.value as TimeRange }))}
-                className="mt-1 w-full text-sm border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-400"
-              >
+              <select value={draft.playTime} onChange={(e) => setDraft((d) => ({ ...d, playTime: e.target.value as TimeRange }))} className={selectCls}>
                 {TIME_RANGES.map((t) => <option key={t}>{t}</option>)}
               </select>
             </Field>
@@ -255,13 +243,13 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
                 onChange={(e) => setDraft((d) => ({ ...d, featured: e.target.checked }))}
                 className="w-4 h-4 rounded text-indigo-600"
               />
-              <span className="text-sm text-slate-600">Mark as featured</span>
+              <span className="text-sm text-slate-600 dark:text-slate-300">Mark as featured</span>
             </label>
           </Field>
 
           <Field label="Supplies Required">
             <textarea
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 resize-none"
+              className={inputCls}
               rows={3}
               placeholder="One item per line..."
               value={draft.suppliesRequired.join('\n')}
@@ -275,27 +263,17 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
           </Field>
 
           <Field label="Setup Instructions">
-            <textarea
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 resize-none"
-              rows={3}
-              value={draft.setupInstructions}
-              onChange={(e) => setDraft((d) => ({ ...d, setupInstructions: e.target.value }))}
-            />
+            <textarea className={inputCls} rows={3} value={draft.setupInstructions} onChange={(e) => setDraft((d) => ({ ...d, setupInstructions: e.target.value }))} />
           </Field>
 
           <Field label="How to Play" error={attempted ? errors.howToPlay : null}>
-            <textarea
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400 resize-none"
-              rows={6}
-              value={draft.howToPlay}
-              onChange={(e) => setDraft((d) => ({ ...d, howToPlay: e.target.value }))}
-            />
+            <textarea className={inputCls} rows={6} value={draft.howToPlay} onChange={(e) => setDraft((d) => ({ ...d, howToPlay: e.target.value }))} />
           </Field>
 
           <Field label="Tags">
             <input
               type="text"
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-400"
+              className={inputCls}
               placeholder="Comma-separated tags..."
               value={tagsRaw}
               onChange={(e) => setTagsRaw(e.target.value)}
@@ -310,17 +288,9 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
         </div>
 
         {/* Footer */}
-        <div className="p-6 pt-4 border-t border-slate-100 flex justify-end gap-2">
-          <button
-            onClick={requestClose}
-            className="text-sm px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={save}
-            className="text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-          >
+        <div className="p-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-2">
+          <button onClick={requestClose} className={outlineBtnCls}>Cancel</button>
+          <button onClick={save} className="text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
             Create Game
           </button>
         </div>
@@ -329,22 +299,16 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
       {/* Discard confirmation */}
       {showConfirm && (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/30">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-80 flex flex-col gap-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 w-80 flex flex-col gap-4">
             <div>
-              <p className="font-semibold text-slate-800">Are you sure you want to cancel?</p>
-              <p className="text-sm text-slate-500 mt-1">Your progress will be lost.</p>
+              <p className="font-semibold text-slate-800 dark:text-slate-100">Are you sure you want to cancel?</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Your progress will be lost.</p>
             </div>
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-              >
+              <button onClick={() => setShowConfirm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                 Keep editing
               </button>
-              <button
-                onClick={onClose}
-                className="text-sm px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-              >
+              <button onClick={onClose} className="text-sm px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
                 Discard
               </button>
             </div>

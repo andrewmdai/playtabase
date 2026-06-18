@@ -30,17 +30,17 @@ export function AuthPrompt({ onSuccess, onCancel }: AuthPromptProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm flex flex-col gap-5">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 w-full max-w-sm flex flex-col gap-5">
         <div>
-          <h2 className="font-semibold text-slate-800">Password required</h2>
-          <p className="text-sm text-slate-500 mt-1">Enter the password to make changes.</p>
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100">Password required</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Enter the password to make changes.</p>
         </div>
         <form onSubmit={submit} className="flex flex-col gap-3">
           <input
             autoFocus
             type="password"
-            className={`w-full text-sm border rounded-lg px-3 py-2.5 focus:outline-none transition-colors ${
-              error ? 'border-red-400 focus:border-red-400' : 'border-slate-200 focus:border-indigo-400'
+            className={`w-full text-sm border rounded-lg px-3 py-2.5 focus:outline-none transition-colors bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 ${
+              error ? 'border-red-400 focus:border-red-400' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-400'
             }`}
             placeholder="Password"
             value={value}
@@ -51,7 +51,7 @@ export function AuthPrompt({ onSuccess, onCancel }: AuthPromptProps) {
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 text-sm px-4 py-2.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+              className="flex-1 text-sm px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               Cancel
             </button>

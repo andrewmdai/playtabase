@@ -30,6 +30,12 @@ export default function App() {
   const [authed, setAuthed] = useState(isAuthed);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [sort, setSort] = useState<'a-z' | 'z-a' | 'newest'>('a-z');
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('playtabase-theme') === 'dark');
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('playtabase-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   useEffect(() => {
     fetchGames()
@@ -151,7 +157,7 @@ export default function App() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as 'a-z' | 'z-a' | 'newest')}
-              className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white text-slate-600 focus:outline-none focus:border-indigo-400"
+              className="text-xs border border-slate-200 dark:border-slate-600 rounded-md px-2 py-1 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-200 focus:outline-none focus:border-indigo-400"
             >
               <option value="a-z">A–Z</option>
               <option value="z-a">Z–A</option>
@@ -161,7 +167,7 @@ export default function App() {
         </div>
         {featured.length > 0 && (
           <section>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
               Featured <span className="normal-case tracking-normal font-normal">({featured.length})</span>
             </h2>
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -174,7 +180,7 @@ export default function App() {
         {rest.length > 0 && (
           <section>
             {featured.length > 0 && (
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
                 All Games <span className="normal-case tracking-normal font-normal">({rest.length})</span>
               </h2>
             )}
@@ -190,11 +196,11 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
+    <div className="flex flex-col h-screen bg-slate-50 dark:bg-slate-900">
       <Header sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((o) => !o)} onCreateGame={() => requireAuth(() => setCreateOpen(true))} />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar open={sidebarOpen} filters={filters} onChange={setFilters} />
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} filters={filters} onChange={setFilters} darkMode={darkMode} onToggleDark={() => setDarkMode((d) => !d)} />
         <main className="flex-1 overflow-y-auto p-6">{renderMain()}</main>
       </div>
 

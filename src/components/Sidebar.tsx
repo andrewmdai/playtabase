@@ -2,8 +2,11 @@ import type { AgeGroup, Filters, GameSetting, GroupSize, TimeRange } from '../ty
 
 interface SidebarProps {
   open: boolean;
+  onClose: () => void;
   filters: Filters;
   onChange: (filters: Filters) => void;
+  darkMode: boolean;
+  onToggleDark: () => void;
 }
 
 const AGE_GROUPS: AgeGroup[] = ['Children', 'Teenagers', 'Young Adults', 'Adults'];
@@ -46,7 +49,7 @@ function CheckboxGroup<T extends string>({
   );
 }
 
-export function Sidebar({ open, filters, onChange }: SidebarProps) {
+export function Sidebar({ open, onClose, filters, onChange, darkMode, onToggleDark }: SidebarProps) {
   const reset = () =>
     onChange({ search: '', ageGroups: [], groupSizes: [], setupTimes: [], playTimes: [], settings: [], tags: [] });
 
@@ -60,12 +63,15 @@ export function Sidebar({ open, filters, onChange }: SidebarProps) {
   );
 
   return (
-    <aside
-      className={`bg-slate-800 text-white flex flex-col shrink-0 transition-all duration-300 overflow-hidden border-r border-slate-700 ${
-        open ? 'w-64' : 'w-0'
-      }`}
-    >
-      <div className="p-4 overflow-y-auto flex-1 min-w-64">
+    <>
+      {open && <div className="fixed inset-0 bg-black/50 z-20 lg:hidden" onClick={onClose} />}
+      <aside
+        className={`bg-slate-800 text-white flex flex-col shrink-0 border-r border-slate-700
+          fixed inset-y-0 left-0 z-30 w-64 transition-transform duration-300
+          lg:relative lg:inset-auto lg:z-auto lg:translate-x-0 lg:transition-[width] lg:overflow-hidden
+          ${open ? 'translate-x-0 lg:w-64' : '-translate-x-full lg:w-0'}`}
+      >
+      <div className="p-4 overflow-y-auto flex-1 min-w-64 flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-white">Filters</h2>
           {hasFilters && (
@@ -119,7 +125,17 @@ export function Sidebar({ open, filters, onChange }: SidebarProps) {
           selected={filters.settings}
           onChange={(v) => onChange({ ...filters, settings: v })}
         />
+        <div className="mt-auto pt-4 border-t border-slate-700">
+          <button
+            onClick={onToggleDark}
+            className="flex items-center gap-2 w-full text-sm text-slate-300 hover:text-white transition-colors"
+          >
+            <span>{darkMode ? '☀' : '☽'}</span>
+            <span>{darkMode ? 'Light mode' : 'Dark mode'}</span>
+          </button>
+        </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
