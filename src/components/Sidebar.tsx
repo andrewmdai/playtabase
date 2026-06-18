@@ -48,7 +48,7 @@ function CheckboxGroup<T extends string>({
 
 export function Sidebar({ open, filters, onChange }: SidebarProps) {
   const reset = () =>
-    onChange({ search: '', ageGroups: [], groupSizes: [], setupTimes: [], playTimes: [], settings: [] });
+    onChange({ search: '', ageGroups: [], groupSizes: [], setupTimes: [], playTimes: [], settings: [], tags: [] });
 
   const hasFilters =
     filters.search ||
