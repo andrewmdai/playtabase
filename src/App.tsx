@@ -108,25 +108,43 @@ export default function App() {
 
   useEffect(() => {
     if (focusedIndex === null) return;
+    const handler = () => setFocusedIndex(null);
+    window.addEventListener('mousedown', handler);
+    return () => window.removeEventListener('mousedown', handler);
+  }, [focusedIndex]);
+
+  useEffect(() => {
+    if (focusedIndex === null) return;
     document.getElementById(`card-${sorted[focusedIndex]?.id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [focusedIndex]);
 
   useEffect(() => {
-    if (selectedGame || createOpen) return;
+    if (createOpen) return;
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        setFocusedIndex((i) => (i === null ? 0 : Math.min(i + 1, sorted.length - 1)));
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        setFocusedIndex((i) => (i === null ? sorted.length - 1 : Math.max(i - 1, 0)));
-      } else if (e.key === 'Enter' && focusedIndex !== null) {
-        e.preventDefault();
-        setSelectedGame(sorted[focusedIndex]);
-      } else if (e.key === 'Escape' && focusedIndex !== null) {
-        setFocusedIndex(null);
+      if (selectedGame) {
+        const idx = sorted.findIndex((g) => g.id === selectedGame.id);
+        if (e.key === 'ArrowLeft' && idx > 0) {
+          e.preventDefault();
+          setSelectedGame(sorted[idx - 1]);
+        } else if (e.key === 'ArrowRight' && idx < sorted.length - 1) {
+          e.preventDefault();
+          setSelectedGame(sorted[idx + 1]);
+        }
+      } else {
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          setFocusedIndex((i) => (i === null ? 0 : Math.min(i + 1, sorted.length - 1)));
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          setFocusedIndex((i) => (i === null ? sorted.length - 1 : Math.max(i - 1, 0)));
+        } else if (e.key === 'Enter' && focusedIndex !== null) {
+          e.preventDefault();
+          setSelectedGame(sorted[focusedIndex]);
+        } else if (e.key === 'Escape' && focusedIndex !== null) {
+          setFocusedIndex(null);
+        }
       }
     };
     window.addEventListener('keydown', handler);
