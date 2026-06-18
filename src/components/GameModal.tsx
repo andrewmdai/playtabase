@@ -47,6 +47,7 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Game>(game);
   const [tagsRaw, setTagsRaw] = useState(game.tags.join(', '));
+  const [suppliesRaw, setSuppliesRaw] = useState(game.suppliesRequired.join('\n'));
   const [attempted, setAttempted] = useState(false);
 
   const errors = {
@@ -116,10 +117,6 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
     });
   };
 
-  const updateSupplies = (raw: string) => {
-    setDraft((d) => ({ ...d, suppliesRequired: raw.split('\n').map((s) => s.trim()).filter(Boolean) }));
-  };
-
   const updateTags = (raw: string) => {
     setDraft((d) => ({ ...d, tags: raw.split(',').map((s) => s.trim()).filter(Boolean) }));
   };
@@ -127,13 +124,14 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
   const save = () => {
     setAttempted(true);
     if (hasErrors) return;
-    onSave(draft);
+    onSave({ ...draft, suppliesRequired: suppliesRaw.split('\n').map((s) => s.trim()).filter(Boolean) });
     setEditing(false);
   };
 
   const discardEdits = () => {
     setDraft(game);
     setTagsRaw(game.tags.join(', '));
+    setSuppliesRaw(game.suppliesRequired.join('\n'));
     setEditing(false);
     setShowConfirm(false);
   };
@@ -269,7 +267,7 @@ export function GameModal({ game, onClose, onSave, onEditRequest, onTagClick, on
           {/* Supplies */}
           <Field label="Supplies Required">
             {editing ? (
-              <textarea className={inputCls} rows={3} placeholder="One item per line..." value={draft.suppliesRequired.join('\n')} onChange={(e) => updateSupplies(e.target.value)} />
+              <textarea className={inputCls} rows={3} placeholder="One item per line..." value={suppliesRaw} onChange={(e) => setSuppliesRaw(e.target.value)} />
             ) : display.suppliesRequired.length === 0 ? (
               <p className="text-sm text-slate-400 italic">None required</p>
             ) : (

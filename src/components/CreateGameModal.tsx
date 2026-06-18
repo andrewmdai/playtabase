@@ -43,6 +43,7 @@ function Field({ label, error, children }: { label: string; error?: string | nul
 export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalProps) {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
   const [tagsRaw, setTagsRaw] = useState('');
+  const [suppliesRaw, setSuppliesRaw] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [showCopySearch, setShowCopySearch] = useState(false);
   const [copySearch, setCopySearch] = useState('');
@@ -105,6 +106,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
     const { id: _id, ...rest } = game;
     setDraft(rest);
     setTagsRaw(game.tags.join(', '));
+    setSuppliesRaw(game.suppliesRequired.join('\n'));
     setShowCopySearch(false);
     setCopySearch('');
   };
@@ -113,7 +115,7 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
     setAttempted(true);
     if (hasErrors) return;
     const slug = draft.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    onCreate({ ...draft, suppliesRequired: draft.suppliesRequired.filter(Boolean), id: `${slug}-${Date.now()}`, createdAt: Date.now() });
+    onCreate({ ...draft, suppliesRequired: suppliesRaw.split('\n').map((s) => s.trim()).filter(Boolean), id: `${slug}-${Date.now()}`, createdAt: Date.now() });
   };
 
   const searchResults = games.filter((g) =>
@@ -252,13 +254,8 @@ export function CreateGameModal({ games, onClose, onCreate }: CreateGameModalPro
               className={inputCls}
               rows={3}
               placeholder="One item per line..."
-              value={draft.suppliesRequired.join('\n')}
-              onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  suppliesRequired: e.target.value.split('\n').map((s) => s.trim()),
-                }))
-              }
+              value={suppliesRaw}
+              onChange={(e) => setSuppliesRaw(e.target.value)}
             />
           </Field>
 
