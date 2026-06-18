@@ -53,11 +53,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (loading) return;
     const url = new URL(window.location.href);
     if (selectedGame) url.searchParams.set('game', selectedGame.id);
     else url.searchParams.delete('game');
     history.replaceState(null, '', url.toString());
-  }, [selectedGame]);
+  }, [selectedGame, loading]);
 
   const requireAuth = (action: () => void) => {
     if (authed) action();
