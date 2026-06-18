@@ -129,7 +129,7 @@ export default function App() {
         {featured.length > 0 && (
           <section>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
-              Featured
+              Featured <span className="normal-case tracking-normal font-normal">({featured.length})</span>
             </h2>
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {featured.map((game) => (
@@ -142,7 +142,7 @@ export default function App() {
           <section>
             {featured.length > 0 && (
               <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
-                All Games
+                All Games <span className="normal-case tracking-normal font-normal">({rest.length})</span>
               </h2>
             )}
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

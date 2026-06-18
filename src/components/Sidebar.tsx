@@ -50,13 +50,14 @@ export function Sidebar({ open, filters, onChange }: SidebarProps) {
   const reset = () =>
     onChange({ search: '', ageGroups: [], groupSizes: [], setupTimes: [], playTimes: [], settings: [], tags: [] });
 
-  const hasFilters =
+  const hasFilters = !!(
     filters.search ||
     filters.ageGroups.length ||
     filters.groupSizes.length ||
     filters.setupTimes.length ||
     filters.playTimes.length ||
-    filters.settings.length;
+    filters.settings.length
+  );
 
   return (
     <aside
